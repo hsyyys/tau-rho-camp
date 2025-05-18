@@ -307,7 +307,7 @@ int Trussquad::connectedsubgraph(const char* compath, vector<vector<int>> &kedge
                 }
             }
         }
-        cout<<"community "<<quadid<<": node "<<nodeset.size()<<", edge "<<edgeset.size()/2<<endl;
+        //cout<<"community "<<quadid<<": node "<<nodeset.size()<<", edge "<<edgeset.size()/2<<endl;
         //output
         string comfolder = compath;
         string communitypath = comfolder + to_string(tlevel)+ "_" + to_string(qlevel)+ "-" +to_string(quadid) + ".txt";
@@ -433,12 +433,12 @@ int Trussquad::computekquad(const char* compath, const char* parentpath) {
 //                continue;
 //            }
 //        }
-        
+        //---1016
         if(keepunchanged[quadid] >= 50) {
             splitquad.pop();
             continue;
         }
-            
+        //---1016
         if(min1 > min2){
             tsupport = tsupport1;
             support = qsupport1;
@@ -465,7 +465,7 @@ int Trussquad::computekquad(const char* compath, const char* parentpath) {
         }
         //break the loop
         if(totaldeledgenum>=edge.size()) {
-            cout<<totaldeledgenum<<" "<<edge.size()<<endl;
+            //cout<<totaldeledgenum<<" "<<edge.size()<<endl;
             break;
         }
         splitquad.pop();
@@ -726,7 +726,7 @@ int Trussquad::buildindex(const char* compath, const char* indexpath) {
         }
         fin.clear();
         fin.close();
-        cout<<i<<endl;
+        //cout<<i<<endl;
     }
     ofstream fout(indexpath, ios::out);
     for(i = 0; i < NODENUM; i++){
@@ -820,13 +820,24 @@ int Trussquad::pointquery(const char* indexpath, const char* querypath, const ch
     readpointquery(querypath, query);
     ofstream fout(pointresult, ios::out);
     //************
+    auto accurate_start = chrono::high_resolution_clock::now(); // 记录开始时间
+    chrono::nanoseconds totalTime(0); // 总运行时间
     for(i = 0; i < query.size(); i++){
+        auto start = chrono::high_resolution_clock::now(); // 记录开始时间
         if(index[query[i]][0].size() >= 1){
             //tlevel, qlevel, com ID
             result.push_back({index[query[i]][0][0], index[query[i]][1][0], index[query[i]][2][0]});
         }
         else result.push_back({-1, -1, -1});
+        auto end = chrono::high_resolution_clock::now(); // 记录结束时间
+        auto duration = chrono::duration_cast<chrono::nanoseconds>(end - start); // 计算运行时间
+        totalTime += duration;
+        cout << "search_Duration: " << duration.count() << " nanoseconds" << endl;
     }
+    cout << "总运行时间(累加版): " << totalTime.count() << " nanoseconds" << endl;
+    auto accurate_end = chrono::high_resolution_clock::now(); // 记录结束时间
+    auto accurate_duration = chrono::duration_cast<chrono::nanoseconds>(accurate_end - accurate_start); // 计算运行时间
+    cout << "总运行时间(持续版): " << accurate_duration.count() << " nanoseconds" << endl;
     //***********
     for(i = 0; i < result.size(); i++)
         fout<<to_string(result[i][0])<<" "<<to_string(result[i][1])<<" "<<to_string(result[i][2])<<" "<<endl;
@@ -844,7 +855,10 @@ int Trussquad::rangequery(const char* indexpath, const char* querypath, const ch
     ofstream fout(rangeresult, ios::out);
     vector<vector<int>> result;
     //**********
+    auto accurate_start = chrono::high_resolution_clock::now(); // 记录开始时间
+    chrono::milliseconds totalTime(0); // 总运行时间
     for(i = 0; i < query.size(); i++){
+        auto start = chrono::high_resolution_clock::now(); // 记录开始时间
         vector<vector<int>> v;
         for(j = 0; j < query[i].size(); j++){
             v.push_back(index[query[i][j]][2]);
@@ -852,7 +866,16 @@ int Trussquad::rangequery(const char* indexpath, const char* querypath, const ch
         int id = findCommonid(v);
         if(id==-1) result.push_back({-1, -1, -1});
         else result.push_back({index[query[i][0]][0][id], index[query[i][0]][1][id], index[query[i][0]][2][id]});
+
+        auto end = chrono::high_resolution_clock::now(); // 记录结束时间
+        auto duration = chrono::duration_cast<chrono::milliseconds>(end - start); // 计算运行时间
+        totalTime += duration;
+        cout << "search_Duration: " << duration.count() << " milliseconds" << endl;
     }
+    cout << "总运行时间(累加版): " << totalTime.count() << " milliseconds" << endl;
+    auto accurate_end = chrono::high_resolution_clock::now(); // 记录结束时间
+    auto accurate_duration = chrono::duration_cast<chrono::milliseconds>(accurate_end - accurate_start); // 计算运行时间
+    cout << "总运行时间(持续版): " << accurate_duration.count() << " milliseconds" << endl;
     //*********
     for(i = 0; i < query.size(); i++){
         fout << to_string(result[i][0]) + " " + to_string(result[i][1]) + " " + to_string(result[i][2])<<endl;
